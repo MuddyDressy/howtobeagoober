@@ -26,11 +26,10 @@ div.step { margin-bottom:5px; }
 <!-- ===== Menu ===== -->
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<button id="goober-btn">Goober Tutorial</button>
-<div id="custom-list"></div>
+<div id="tutorial-buttons"></div>
 <button id="create-btn">Create Custom</button>
 <button id="reset-btn">Reset All</button>
-<div class="version">v39</div>
+<div class="version">v40</div>
 </div>
 
 <!-- ===== Editor ===== -->
@@ -42,7 +41,7 @@ div.step { margin-bottom:5px; }
 <div id="lines-preview"></div>
 <button id="save-tutorial">Save Tutorial</button>
 <button id="back-menu">Back to Menu</button>
-<div class="version">v39</div>
+<div class="version">v40</div>
 </div>
 
 <!-- ===== Viewer ===== -->
@@ -50,7 +49,7 @@ div.step { margin-bottom:5px; }
 <div id="scroll-container">
 <!-- title and steps inserted dynamically -->
 </div>
-<div class="version">v39</div>
+<div class="version">v40</div>
 </div>
 
 <script>
@@ -69,9 +68,9 @@ if(!tutorials["Goober Tutorial"]) {
 
 // ===== Elements =====
 const menu = document.getElementById("menu");
+const tutorialButtonsDiv = document.getElementById("tutorial-buttons");
 const editor = document.getElementById("editor");
 const viewer = document.getElementById("viewer");
-const customList = document.getElementById("custom-list");
 const linesPreview = document.getElementById("lines-preview");
 const titleInput = document.getElementById("title-input");
 const lineInput = document.getElementById("line-input");
@@ -84,9 +83,8 @@ let stepNumber = 1;
 
 // ===== Menu =====
 function refreshMenu(){
-  customList.innerHTML = "";
+  tutorialButtonsDiv.innerHTML = "";
   for(const key in tutorials){
-    if(key==="Goober Tutorial") continue;
     const wrapper = document.createElement("div");
     wrapper.className="tutorial-btn";
     const btn = document.createElement("button");
@@ -109,7 +107,7 @@ function refreshMenu(){
     });
     wrapper.appendChild(btn);
     wrapper.appendChild(del);
-    customList.appendChild(wrapper);
+    tutorialButtonsDiv.appendChild(wrapper);
   }
 }
 refreshMenu();
@@ -202,8 +200,6 @@ document.getElementById("create-btn").addEventListener("click", ()=>{
   menu.style.display="none";
   renderLinesPreview();
 });
-
-document.getElementById("goober-btn").addEventListener("click",()=>openTutorial("Goober Tutorial"));
 
 document.getElementById("reset-btn").addEventListener("click",()=>{
   if(confirm("Reset all tutorials to default?")){
