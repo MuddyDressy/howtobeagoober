@@ -4,11 +4,22 @@
 <meta charset="UTF-8">
 <title>Infinite Goober</title>
 <style>
-  body { 
-    font-family: sans-serif; 
-    line-height: 1.5; 
-    padding: 20px; 
-    overflow: hidden; /* hides the scrollbar */
+  body {
+    font-family: sans-serif;
+    line-height: 1.5;
+    padding: 20px;
+    overflow-y: scroll; /* allow vertical scrolling */
+  }
+
+  /* Hide scrollbar for Chrome, Edge, Safari */
+  body::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+
+  /* Hide scrollbar for Firefox */
+  body {
+    scrollbar-width: none;
   }
 </style>
 </head>
@@ -31,10 +42,12 @@ function addStep() {
 // Add initial steps (40)
 for (let i = 0; i < 40; i++) addStep();
 
-// Keep adding steps automatically without scrolling
-setInterval(() => {
-  addStep();
-}, 200); // adds one step every 200ms
+// Add more steps as user scrolls
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
+    for (let i = 0; i < 10; i++) addStep();
+  }
+});
 </script>
 </body>
 </html>
