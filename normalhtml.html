@@ -14,21 +14,21 @@ input { padding:5px; font-size:14px; margin-bottom:5px; }
 .line-item button { padding:0 5px; font-size:12px; }
 .tutorial-button-wrapper { display:flex; align-items:center; margin-bottom:5px; }
 .tutorial-button-wrapper button { margin-right:5px; }
+#version-display { font-size:16px; margin-bottom:10px; }
 </style>
 </head>
 <body>
 
 <div id="menu">
-  <h1>Welcome to Goober Tutorials</h1>
-  <h2 id="version-display">Version: v25</h2>
-  <div id="main-tutorial-wrapper" class="tutorial-button-wrapper">
-    <button id="goober-btn">Goober Tutorial</button>
-  </div>
-  <div id="custom-list"></div>
-  <button id="create-btn">Create Custom</button>
-  <button id="reset-btn">Reset All Tutorials</button>
+<h1>Welcome to Goober Tutorials</h1>
+<h2 id="version-display">Version: v26</h2>
+<div id="main-tutorial-wrapper" class="tutorial-button-wrapper">
+  <button id="goober-btn">Goober Tutorial</button>
 </div>
-
+<div id="custom-list"></div>
+<button id="create-btn">Create Custom</button>
+<button id="reset-btn">Reset All Tutorials</button>
+</div>
 
 <div id="scroll-container" style="display:none;">
 <div class="tutorial" id="tutorial-view" style="display:none;">
@@ -64,11 +64,22 @@ const createBtn = document.getElementById("create-btn");
 const customListDiv = document.getElementById("custom-list");
 const gooberBtn = document.getElementById("goober-btn");
 const resetBtn = document.getElementById("reset-btn");
+
 const tutorialView = document.getElementById("tutorial-view");
 const tutorialTitleDisplay = document.getElementById("tutorial-title");
 const tutorialSteps = document.getElementById("tutorial-steps");
+
+const createDiv = document.getElementById("create-tutorial");
+const customTitleInput = document.getElementById("custom-title");
+const customLineInput = document.getElementById("custom-line");
+const addLineBtn = document.getElementById("add-line");
+const finishBtn = document.getElementById("finish-custom");
+const previewLines = document.getElementById("preview-lines");
+
 let stepNumber = 1;
 let currentTutorial = null;
+let editingLines = [];
+let editingTitle = "";
 
 // ===== Render Custom Buttons =====
 function refreshCustomMenu(){
@@ -116,29 +127,40 @@ function openTutorial(title){
   stepNumber=41;
 }
 
-// ===== Create/Edit Tutorial =====
-const createDiv=document.getElementById("create-tutorial");
-const customTitleInput=document.getElementById("custom-title");
-const customLineInput=document.getElementById("custom-line");
-const addLineBtn=document.getElementById("add-line");
-const finishBtn=document.getElementById("finish-custom");
-const previewLines=document.getElementById("preview-lines");
-let editingLines=[];
-let editingTitle="";
-
-// Edit tutorial
+// ===== Edit Tutorial =====
 function editTutorial(title){
-  editingTitle=title;
-  editingLines=[...tutorials[title]];
+  editingTitle = title;
+  editingLines = [...tutorials[title]]; // live copy
   renderPreview();
-  customTitleInput.value=title;
-  menu.style.display="none";
-  scrollContainer.style.display="block";
-  createDiv.style.display="block";
-  tutorialView.style.display="none";
+  customTitleInput.value = title;
+  menu.style.display = "none";
+  scrollContainer.style.display = "block";
+  createDiv.style.display = "block";
+  tutorialView.style.display = "none";
 }
 
-// Add line
+// ===== Render Preview Lines =====
+function renderPreview(){
+  previewLines.innerHTML="";
+  editingLines.forEach((line, idx)=>{
+    const div=document.createElement("div");
+    div.className="line-item";
+    const textSpan=document.createElement("span");
+    textSpan.textContent=line;
+    div.appendChild(textSpan);
+
+    const removeBtn=document.createElement("button");
+    removeBtn.textContent="✖";
+    removeBtn.addEventListener("click",()=>{
+      editingLines.splice(idx,1);
+      renderPreview();
+    });
+    div.appendChild(removeBtn);
+    previewLines.appendChild(div);
+  });
+}
+
+// ===== Add Line =====
 addLineBtn.addEventListener("click",()=>{
   const text=customLineInput.value.trim();
   if(!text) return;
@@ -147,35 +169,17 @@ addLineBtn.addEventListener("click",()=>{
   renderPreview();
 });
 
-// Render preview lines with remove button
-function renderPreview(){
-  previewLines.innerHTML="";
-  editingLines.forEach((line, idx)=>{
-    const div=document.createElement("div");
-    div.className="line-item";
-    div.innerHTML=`<span>${line}</span>`;
-    const removeBtn=document.createElement("button");
-    removeBtn.textContent="✖";
-    removeBtn.addEventListener("click",()=>{
-      editingLines.splice(idx,1); // remove line from editingLines
-      renderPreview(); // re-render
-    });
-    div.appendChild(removeBtn);
-    previewLines.appendChild(div);
-  });
-}
-
-// Save tutorial
+// ===== Save Tutorial =====
 finishBtn.addEventListener("click",()=>{
   const title=customTitleInput.value.trim()||"Untitled Tutorial";
-  if(editingLines.length===0) return;
-  tutorials[title]=editingLines;
+  if(editingLines.length===0) return alert("Tutorial must have at least 1 line!");
+  tutorials[title] = [...editingLines];
   localStorage.setItem("tutorials",JSON.stringify(tutorials));
   refreshCustomMenu();
   openTutorial(title);
 });
 
-// ===== Menu buttons =====
+// ===== Menu Buttons =====
 createBtn.addEventListener("click",()=>{
   editingLines=[];
   editingTitle="";
@@ -189,7 +193,7 @@ createBtn.addEventListener("click",()=>{
 });
 
 gooberBtn.addEventListener("click",()=>openTutorial("Goober Tutorial"));
-gooberBtn.addEventListener("contextmenu",e=>{
+gooberBtn.addEventListener("contextmenu", e=>{
   e.preventDefault();
   editTutorial("Goober Tutorial");
 });
@@ -205,9 +209,9 @@ resetBtn.addEventListener("click",()=>{
   }
 });
 
-// ===== Infinite scroll =====
+// ===== Infinite Scroll =====
 scrollContainer.addEventListener("scroll",()=>{
-  if(scrollContainer.scrollTop+scrollContainer.clientHeight >= scrollContainer.scrollHeight-50){
+  if(scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50){
     if(tutorialView.style.display==="block" && currentTutorial){
       const lines=tutorials[currentTutorial];
       for(let i=0;i<10;i++){
