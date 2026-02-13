@@ -1,61 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>How To Be a Goober</title>
+<title>Global Goober Likes</title>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: sans-serif;
-    line-height: 1.5;
-  }
-
-  /* Scroll container */
-  #scroll-container {
-    height: 100%;
-    overflow-y: scroll; /* scrolling works */
-    scrollbar-width: none; /* Firefox */
-  }
-
-  #scroll-container::-webkit-scrollbar {
-    width: 0; /* Chrome, Edge, Safari */
-  }
-
-  #steps {
-    padding: 20px;
-  }
+  body { font-family: sans-serif; padding: 40px; }
+  #likeBtn { background: yellow; padding: 10px; cursor: pointer; font-size: 18px; }
 </style>
 </head>
 <body>
-<div id="scroll-container">
   <h1>How To Be a Goober</h1>
-  <div id="steps"></div>
-</div>
+
+  <div id="likeBtn">
+    ❤️ Like: <span id="likeCount">0</span>
+  </div>
 
 <script>
-let step = 1;
-const container = document.getElementById("steps");
+  const likeCountEl = document.getElementById("likeCount");
+  const likeBtn = document.getElementById("likeBtn");
 
-// Function to add one step
-function addStep() {
-  const div = document.createElement("div");
-  div.textContent = `Step ${step}: be a goober`;
-  container.appendChild(div);
-  step++;
-}
+  const repoUser = "YOUR_USERNAME";
+  const repoName = "YOUR_REPO";
+  const filePath = "likes.json";
 
-// Add initial steps (40)
-for (let i = 0; i < 40; i++) addStep();
+  let hasLiked = localStorage.getItem("gooberLiked");
 
-// Add more steps as user scrolls
-const scrollContainer = document.getElementById("scroll-container");
-scrollContainer.addEventListener("scroll", () => {
-  if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
-    for (let i = 0; i < 10; i++) addStep();
+  // Fetch & update count
+  async function refreshCount() {
+    const url = `https://raw.githubusercontent.com/${repoUser}/${repoName}/main/${filePath}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    likeCountEl.textContent = data.count;
+
+    if (hasLiked) {
+      likeBtn.style.opacity = "0.6";
+      likeBtn.style.pointerEvents = "none";
+    }
   }
-});
+
+  setInterval(refreshCount, 3000);
+  refreshCount();
+
+  likeBtn.addEventListener("click", async () => {
+    if (hasLiked) return;
+
+    await fetch("/.netlify/functions/updateLikes", { method: "POST" });
+
+    localStorage.setItem("gooberLiked", "true");
+    hasLiked = true;
+    refreshCount();
+  });
 </script>
 </body>
 </html>
