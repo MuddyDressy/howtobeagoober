@@ -59,13 +59,14 @@
 
   <!-- Create Custom Form -->
   <div class="tutorial" id="create-tutorial" style="display:none;">
-    <h2>Create Your Custom Tutorial</h2>
+    <h2>Create Your Infinite Tutorial</h2>
     <input type="text" id="custom-title" placeholder="Tutorial Title" />
     <br><br>
     <input type="text" id="custom-step" placeholder="Step text" />
     <button id="add-step">Add Step</button>
-    <p>Added steps will scroll infinitely once you finish creating it.</p>
+    <p>Added steps will repeat infinitely once you finish creating it.</p>
     <button id="finish-custom">Finish Tutorial</button>
+    <div id="preview-steps"></div>
   </div>
 
 </div>
@@ -78,7 +79,7 @@ const gooberBtn = document.getElementById("goober-btn");
 const customBtn = document.getElementById("custom-btn");
 const createBtn = document.getElementById("create-btn");
 
-// ===== Goober Tutorial =====
+// ===== Main Goober Tutorial =====
 let step = 1;
 const mainContainer = document.getElementById("main-steps");
 const messages = [
@@ -117,33 +118,43 @@ const addStepBtn = document.getElementById("add-step");
 const finishCustomBtn = document.getElementById("finish-custom");
 const customTitleDisplay = document.getElementById("custom-tutorial-title");
 const customContainer = document.getElementById("custom-steps");
+const previewSteps = document.getElementById("preview-steps");
 
-// Add a step to custom tutorial
+// Add a step to custom tutorial (preview as you add)
 addStepBtn.addEventListener("click", () => {
   const text = customStepInput.value.trim();
   if (!text) return;
   customSteps.push(text);
   customStepInput.value = "";
-  addCustomStep();
-});
 
-// Function to add a custom step (cycles through steps)
-function addCustomStep() {
-  if (customSteps.length === 0) return;
+  // Preview step immediately
   const div = document.createElement("div");
-  const message = customSteps[(customStepNumber - 1) % customSteps.length];
-  div.textContent = `Step ${customStepNumber}: ${message}`;
-  customContainer.appendChild(div);
-  customStepNumber++;
-}
+  div.textContent = `Step ${customSteps.length}: ${text}`;
+  previewSteps.appendChild(div);
+});
 
 // Finish creating custom tutorial
 finishCustomBtn.addEventListener("click", () => {
-  customTutorialTitle = customTitleInput.value.trim() || "My Custom Tutorial";
+  if (customSteps.length === 0) return;
+
+  customTutorialTitle = customTitleInput.value.trim() || "My Infinite Tutorial";
   customTitleDisplay.textContent = customTutorialTitle;
+
+  // Hide create form and show custom tutorial
   document.getElementById("create-tutorial").style.display = "none";
+  customContainer.innerHTML = "";
+
+  // Copy all added steps initially
+  customSteps.forEach((text, index) => {
+    const div = document.createElement("div");
+    div.textContent = `Step ${index + 1}: ${text}`;
+    customContainer.appendChild(div);
+  });
+
+  customStepNumber = customSteps.length + 1;
   document.getElementById("custom-tutorial").style.display = "block";
-  customBtn.style.display = "inline-block"; // show the menu button
+
+  customBtn.style.display = "inline-block"; // show menu button
 });
 
 // ===== Menu Buttons =====
@@ -172,7 +183,14 @@ scrollContainer.addEventListener("scroll", () => {
       for (let i = 0; i < 10; i++) addMainStep();
     }
     if (document.getElementById("custom-tutorial").style.display === "block") {
-      for (let i = 0; i < 10; i++) addCustomStep();
+      for (let i = 0; i < 10; i++) {
+        // Cycle through custom steps infinitely
+        const div = document.createElement("div");
+        const message = customSteps[(customStepNumber - 1) % customSteps.length];
+        div.textContent = `Step ${customStepNumber}: ${message}`;
+        customContainer.appendChild(div);
+        customStepNumber++;
+      }
     }
   }
 });
