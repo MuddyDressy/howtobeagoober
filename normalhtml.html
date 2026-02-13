@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tutorials</title>
+<title>Goober Tutorials</title>
 <style>
   html, body {
     margin: 0;
@@ -32,10 +32,17 @@
   #scroll-container::-webkit-scrollbar {
     width: 0;
   }
+
+  input {
+    padding: 5px;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
 </style>
 </head>
 <body>
 
+<!-- Menu -->
 <div id="menu">
   <h1>Welcome to Goober Tutorials</h1>
   <button id="goober-btn">Goober Tutorial</button>
@@ -43,6 +50,7 @@
   <button id="create-btn">Create Custom</button>
 </div>
 
+<!-- Scrollable Tutorials -->
 <div id="scroll-container" style="display:none;">
 
   <!-- Main Goober Tutorial -->
@@ -57,16 +65,16 @@
     <div id="custom-steps"></div>
   </div>
 
-  <!-- Create Custom Form -->
+  <!-- Create Custom Tutorial -->
   <div class="tutorial" id="create-tutorial" style="display:none;">
     <h2>Create Your Infinite Tutorial</h2>
     <input type="text" id="custom-title" placeholder="Tutorial Title" />
-    <br><br>
-    <input type="text" id="custom-step" placeholder="Step text" />
-    <button id="add-step">Add Step</button>
-    <p>Added steps will repeat infinitely once you finish creating it.</p>
+    <br>
+    <input type="text" id="custom-line" placeholder="Line text" />
+    <button id="add-line">Add Line</button>
+    <p>These are your lines (they will become steps when viewed):</p>
+    <div id="preview-lines"></div>
     <button id="finish-custom">Finish Tutorial</button>
-    <div id="preview-steps"></div>
   </div>
 
 </div>
@@ -108,53 +116,52 @@ function addMainStep() {
 for (let i = 0; i < 40; i++) addMainStep();
 
 // ===== Custom Tutorial Handling =====
-let customSteps = [];
+let customLines = []; // user input lines
 let customStepNumber = 1;
 let customTutorialTitle = "";
 
 const customTitleInput = document.getElementById("custom-title");
-const customStepInput = document.getElementById("custom-step");
-const addStepBtn = document.getElementById("add-step");
+const customLineInput = document.getElementById("custom-line");
+const addLineBtn = document.getElementById("add-line");
 const finishCustomBtn = document.getElementById("finish-custom");
 const customTitleDisplay = document.getElementById("custom-tutorial-title");
 const customContainer = document.getElementById("custom-steps");
-const previewSteps = document.getElementById("preview-steps");
+const previewLines = document.getElementById("preview-lines");
 
-// Add a step to custom tutorial (preview as you add)
-addStepBtn.addEventListener("click", () => {
-  const text = customStepInput.value.trim();
+// Add a line (preview)
+addLineBtn.addEventListener("click", () => {
+  const text = customLineInput.value.trim();
   if (!text) return;
-  customSteps.push(text);
-  customStepInput.value = "";
+  customLines.push(text);
+  customLineInput.value = "";
 
-  // Preview step immediately
+  // Show in preview
   const div = document.createElement("div");
-  div.textContent = `Step ${customSteps.length}: ${text}`;
-  previewSteps.appendChild(div);
+  div.textContent = text;
+  previewLines.appendChild(div);
 });
 
-// Finish creating custom tutorial
+// Finish custom tutorial
 finishCustomBtn.addEventListener("click", () => {
-  if (customSteps.length === 0) return;
+  if (customLines.length === 0) return;
 
   customTutorialTitle = customTitleInput.value.trim() || "My Infinite Tutorial";
   customTitleDisplay.textContent = customTutorialTitle;
 
-  // Hide create form and show custom tutorial
   document.getElementById("create-tutorial").style.display = "none";
   customContainer.innerHTML = "";
 
-  // Copy all added steps initially
-  customSteps.forEach((text, index) => {
+  // Add initial 40 steps, randomly picking from lines
+  for (let i = 0; i < 40; i++) {
     const div = document.createElement("div");
-    div.textContent = `Step ${index + 1}: ${text}`;
+    const line = customLines[Math.floor(Math.random() * customLines.length)];
+    div.textContent = `Step ${i + 1}: ${line}`;
     customContainer.appendChild(div);
-  });
+  }
+  customStepNumber = 41;
 
-  customStepNumber = customSteps.length + 1;
   document.getElementById("custom-tutorial").style.display = "block";
-
-  customBtn.style.display = "inline-block"; // show menu button
+  customBtn.style.display = "inline-block";
 });
 
 // ===== Menu Buttons =====
@@ -176,18 +183,20 @@ createBtn.addEventListener("click", () => {
   document.getElementById("create-tutorial").style.display = "block";
 });
 
-// ===== Infinite scrolling =====
+// ===== Infinite Scrolling =====
 scrollContainer.addEventListener("scroll", () => {
   if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
+    // Main tutorial
     if (document.getElementById("main-tutorial").style.display === "block") {
       for (let i = 0; i < 10; i++) addMainStep();
     }
+
+    // Custom tutorial
     if (document.getElementById("custom-tutorial").style.display === "block") {
       for (let i = 0; i < 10; i++) {
-        // Cycle through custom steps infinitely
         const div = document.createElement("div");
-        const message = customSteps[(customStepNumber - 1) % customSteps.length];
-        div.textContent = `Step ${customStepNumber}: ${message}`;
+        const line = customLines[Math.floor(Math.random() * customLines.length)];
+        div.textContent = `Step ${customStepNumber}: ${line}`;
         customContainer.appendChild(div);
         customStepNumber++;
       }
@@ -195,5 +204,6 @@ scrollContainer.addEventListener("scroll", () => {
   }
 });
 </script>
+
 </body>
 </html>
