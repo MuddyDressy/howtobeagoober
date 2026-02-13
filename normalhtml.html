@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Goober Tutorials v28</title>
+<title>Goober Tutorials v29</title>
 <style>
 body { font-family:sans-serif; margin:0; padding:0; }
 #menu, #editor, #viewer { padding:20px; }
-button { margin:2px; cursor:pointer; }
-.line-item { display:flex; justify-content:space-between; margin-bottom:3px; }
-.line-item button { padding:0 5px; }
-#scroll-container { height:90vh; overflow-y:scroll; border-top:1px solid #ccc; }
+button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
+.line-item { display:flex; justify-content:space-between; margin-bottom:5px; }
+.line-item button { padding:2px 6px; font-size:14px; }
+#scroll-container { height:80vh; overflow-y:scroll; border-top:1px solid #ccc; padding:10px; }
 </style>
 </head>
 <body>
 
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<h2>Version: v28</h2>
+<h2>Version: v29</h2>
 <div>
 <button id="goober-btn">Goober Tutorial</button>
 </div>
@@ -42,6 +42,7 @@ button { margin:2px; cursor:pointer; }
 </div>
 
 <script>
+// ===== Storage =====
 let tutorials = JSON.parse(localStorage.getItem("tutorials") || "{}");
 const defaultGoober = [
 "be a goober","goober around","just goob","try goobin",
@@ -49,8 +50,9 @@ const defaultGoober = [
 "uh, is that it, WAIT NO i forgot theres more",
 "goummberbrrrrrrrrrtrr","goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
 ];
-if(!tutorials["Goober Tutorial"]) { tutorials["Goober Tutorial"] = [...defaultGoober]; localStorage.setItem("tutorials", JSON.stringify(tutorials)); }
+if(!tutorials["Goober Tutorial"]) { tutorials["Goober Tutorial"] = [...defaultGoober]; localStorage.setItem("tutorials",JSON.stringify(tutorials)); }
 
+// ===== Elements =====
 const menu = document.getElementById("menu");
 const editor = document.getElementById("editor");
 const viewer = document.getElementById("viewer");
@@ -72,6 +74,7 @@ function refreshMenu(){
   for(const key in tutorials){
     if(key==="Goober Tutorial") continue;
     const wrapper = document.createElement("div");
+    wrapper.style.marginBottom="4px";
     const btn = document.createElement("button");
     btn.textContent = key;
     btn.addEventListener("click",()=>openTutorial(key));
