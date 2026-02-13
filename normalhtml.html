@@ -62,25 +62,20 @@
 <div id="menu">
   <h1>Welcome to Goober Tutorials</h1>
   <div id="main-tutorial-wrapper" class="tutorial-button-wrapper">
-    <button id="edit-goober-btn">Goober Tutorial</button>
+    <button id="goober-btn">Goober Tutorial</button>
   </div>
   <div id="custom-list"></div>
   <button id="create-btn">Create Custom</button>
+  <button id="reset-btn">Reset All Tutorials</button>
 </div>
 
 <!-- Scrollable Tutorials -->
 <div id="scroll-container" style="display:none;">
 
-  <!-- Main Goober Tutorial -->
-  <div class="tutorial" id="main-tutorial" style="display:none;">
-    <h2>Main Goober Tutorial</h2>
-    <div id="main-steps"></div>
-  </div>
-
-  <!-- Custom Tutorial -->
-  <div class="tutorial" id="custom-tutorial" style="display:none;">
-    <h2 id="custom-tutorial-title"></h2>
-    <div id="custom-steps"></div>
+  <!-- Tutorial Viewer -->
+  <div class="tutorial" id="tutorial-view" style="display:none;">
+    <h2 id="tutorial-title"></h2>
+    <div id="tutorial-steps"></div>
   </div>
 
   <!-- Create/Edit Tutorial -->
@@ -101,32 +96,36 @@
 // ===== Storage =====
 let tutorials = JSON.parse(localStorage.getItem("tutorials") || "{}");
 
-// ===== Menu Buttons =====
+// ===== Default Main Goober Tutorial =====
+const defaultGoober = [
+  "be a goober",
+  "goober around",
+  "just goob",
+  "try goobin",
+  "if it doesn't work, goob again",
+  "goober",
+  "uh, is that it, WAIT NO i forgot theres more",
+  "goummberbrrrrrrrrrtrr",
+  "goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+];
+if (!tutorials["Goober Tutorial"]) {
+  tutorials["Goober Tutorial"] = [...defaultGoober];
+  localStorage.setItem("tutorials", JSON.stringify(tutorials));
+}
+
+// ===== Menu Elements =====
 const menu = document.getElementById("menu");
 const scrollContainer = document.getElementById("scroll-container");
 const createBtn = document.getElementById("create-btn");
 const customListDiv = document.getElementById("custom-list");
-const editGooberBtn = document.getElementById("edit-goober-btn");
+const gooberBtn = document.getElementById("goober-btn");
+const resetBtn = document.getElementById("reset-btn");
 
-const mainTutorial = document.getElementById("main-tutorial");
-const mainContainer = document.getElementById("main-steps");
-let step = 1;
-
-// ===== Default Main Goober Tutorial Lines =====
-if (!tutorials["Goober Tutorial"]) {
-  tutorials["Goober Tutorial"] = [
-    "be a goober",
-    "goober around",
-    "just goob",
-    "try goobin",
-    "if it doesn't work, goob again",
-    "goober",
-    "uh, is that it, WAIT NO i forgot theres more",
-    "goummberbrrrrrrrrrtrr",
-    "goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-  ];
-  localStorage.setItem("tutorials", JSON.stringify(tutorials));
-}
+const tutorialView = document.getElementById("tutorial-view");
+const tutorialTitleDisplay = document.getElementById("tutorial-title");
+const tutorialSteps = document.getElementById("tutorial-steps");
+let stepNumber = 1;
+let currentTutorial = null;
 
 // ===== Render Custom Buttons =====
 function refreshCustomMenu() {
@@ -161,33 +160,26 @@ function refreshCustomMenu() {
 refreshCustomMenu();
 
 // ===== Open Tutorial =====
-const customTutorialDiv = document.getElementById("custom-tutorial");
-const customContainer = document.getElementById("custom-steps");
-const customTitleDisplay = document.getElementById("custom-tutorial-title");
-let currentTutorial = null;
-let customStepNumber = 1;
-
 function openTutorial(title) {
   currentTutorial = title;
+  stepNumber = 1;
   menu.style.display = "none";
   scrollContainer.style.display = "block";
-  mainTutorial.style.display = "none";
-  customTutorialDiv.style.display = "block";
-  document.getElementById("create-tutorial").style.display = "none";
-  customContainer.innerHTML = "";
-  customStepNumber = 1;
+  createDiv.style.display = "none";
+  tutorialView.style.display = "block";
+  tutorialSteps.innerHTML = "";
+  tutorialTitleDisplay.textContent = title;
 
   const lines = tutorials[title];
-  for (let i = 0; i < 40; i++) {
+  for (let i=0;i<40;i++){
     const div = document.createElement("div");
     div.textContent = `Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
-    customContainer.appendChild(div);
+    tutorialSteps.appendChild(div);
   }
-  customStepNumber = 41;
-  customTitleDisplay.textContent = title;
+  stepNumber = 41;
 }
 
-// ===== Edit Tutorial (includes main Goober tutorial) =====
+// ===== Create/Edit Tutorial =====
 const createDiv = document.getElementById("create-tutorial");
 const customTitleInput = document.getElementById("custom-title");
 const customLineInput = document.getElementById("custom-line");
@@ -197,7 +189,8 @@ const previewLines = document.getElementById("preview-lines");
 let editingLines = [];
 let editingTitle = "";
 
-function editTutorial(title) {
+// Edit tutorial
+function editTutorial(title){
   editingTitle = title;
   editingLines = [...tutorials[title]];
   renderPreview();
@@ -205,29 +198,28 @@ function editTutorial(title) {
   menu.style.display = "none";
   scrollContainer.style.display = "block";
   createDiv.style.display = "block";
-  mainTutorial.style.display = "none";
-  customTutorialDiv.style.display = "none";
+  tutorialView.style.display = "none";
 }
 
 // Add line
 addLineBtn.addEventListener("click", () => {
   const text = customLineInput.value.trim();
-  if (!text) return;
+  if(!text) return;
   editingLines.push(text);
   customLineInput.value = "";
   renderPreview();
 });
 
-// Render preview lines with remove
-function renderPreview() {
+// Render preview lines with remove button
+function renderPreview(){
   previewLines.innerHTML = "";
-  editingLines.forEach((line, idx) => {
+  editingLines.forEach((line, idx)=>{
     const div = document.createElement("div");
     div.className = "line-item";
     div.innerHTML = `<span>${line}</span>`;
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "✖";
-    removeBtn.addEventListener("click", () => {
+    removeBtn.addEventListener("click",()=>{
       editingLines.splice(idx,1);
       renderPreview();
     });
@@ -236,10 +228,10 @@ function renderPreview() {
   });
 }
 
-// Finish editing/creating
-finishBtn.addEventListener("click", () => {
+// Save tutorial
+finishBtn.addEventListener("click",()=>{
   const title = customTitleInput.value.trim() || "Untitled Tutorial";
-  if (editingLines.length === 0) return;
+  if(editingLines.length === 0) return;
   tutorials[title] = editingLines;
   localStorage.setItem("tutorials", JSON.stringify(tutorials));
   refreshCustomMenu();
@@ -247,31 +239,45 @@ finishBtn.addEventListener("click", () => {
 });
 
 // ===== Menu buttons =====
-createBtn.addEventListener("click", () => {
-  editingLines = [];
-  editingTitle = "";
-  customTitleInput.value = "";
-  customLineInput.value = "";
+createBtn.addEventListener("click",()=>{
+  editingLines=[];
+  editingTitle="";
+  customTitleInput.value="";
+  customLineInput.value="";
   renderPreview();
-  menu.style.display = "none";
-  scrollContainer.style.display = "block";
-  createDiv.style.display = "block";
-  mainTutorial.style.display = "none";
-  customTutorialDiv.style.display = "none";
+  menu.style.display="none";
+  scrollContainer.style.display="block";
+  createDiv.style.display="block";
+  tutorialView.style.display="none";
 });
 
-editGooberBtn.addEventListener("click", () => editTutorial("Goober Tutorial"));
+gooberBtn.addEventListener("click",()=>openTutorial("Goober Tutorial"));
+gooberBtn.addEventListener("contextmenu", e=>{
+  e.preventDefault();
+  editTutorial("Goober Tutorial");
+});
 
-// ===== Infinite Scroll =====
-scrollContainer.addEventListener("scroll", () => {
-  if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
-    if (customTutorialDiv.style.display==="block" && currentTutorial) {
+// ===== Reset All =====
+resetBtn.addEventListener("click",()=>{
+  if(confirm("Reset all tutorials to default?")){
+    tutorials={"Goober Tutorial":[...defaultGoober]};
+    localStorage.setItem("tutorials", JSON.stringify(tutorials));
+    refreshCustomMenu();
+    menu.style.display="block";
+    scrollContainer.style.display="none";
+  }
+});
+
+// ===== Infinite scroll =====
+scrollContainer.addEventListener("scroll",()=>{
+  if(scrollContainer.scrollTop+scrollContainer.clientHeight >= scrollContainer.scrollHeight-50){
+    if(tutorialView.style.display==="block" && currentTutorial){
       const lines = tutorials[currentTutorial];
-      for (let i=0;i<10;i++){
-        const div = document.createElement("div");
-        div.textContent = `Step ${customStepNumber}: ${lines[Math.floor(Math.random()*lines.length)]}`;
-        customContainer.appendChild(div);
-        customStepNumber++;
+      for(let i=0;i<10;i++){
+        const div=document.createElement("div");
+        div.textContent=`Step ${stepNumber}: ${lines[Math.floor(Math.random()*lines.length)]}`;
+        tutorialSteps.appendChild(div);
+        stepNumber++;
       }
     }
   }
