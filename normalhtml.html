@@ -2,17 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>How To Be a Goober + Custom Tutorial</title>
+<title>Goober Tutorials</title>
 <style>
   html, body {
     margin: 0;
     padding: 0;
-    height: 100%;
     font-family: sans-serif;
     line-height: 1.5;
+    height: 100%;
   }
 
-  /* Scroll container */
+  #menu, .tutorial {
+    padding: 20px;
+  }
+
+  button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
   #scroll-container {
     height: 100%;
     overflow-y: scroll;
@@ -20,63 +30,57 @@
   }
 
   #scroll-container::-webkit-scrollbar {
-    width: 0; /* Chrome, Edge, Safari */
-  }
-
-  .tutorial {
-    padding: 20px;
-    margin-bottom: 40px;
-  }
-
-  .tutorial h2 {
-    margin-top: 0;
-  }
-
-  .add-step-form {
-    margin-bottom: 20px;
-  }
-
-  .add-step-form input, .add-step-form button {
-    padding: 5px;
-    font-size: 14px;
-  }
-
-  .add-step-form input {
-    width: 300px;
+    width: 0;
   }
 </style>
 </head>
 <body>
-<div id="scroll-container">
+
+<div id="menu">
+  <h1>Welcome to Goober Tutorials</h1>
+  <button id="goober-btn">Goober Tutorial</button>
+  <button id="custom-btn" style="display:none;">Custom Tutorial</button>
+  <button id="create-btn">Create Custom</button>
+</div>
+
+<div id="scroll-container" style="display:none;">
 
   <!-- Main Goober Tutorial -->
-  <div class="tutorial" id="main-tutorial">
+  <div class="tutorial" id="main-tutorial" style="display:none;">
     <h2>Main Goober Tutorial</h2>
     <div id="main-steps"></div>
   </div>
 
   <!-- Custom Tutorial -->
-  <div class="tutorial" id="custom-tutorial">
-    <h2>Custom Tutorial</h2>
-    <div class="add-step-form">
-      <input type="text" id="custom-title" placeholder="Tutorial Title" />
-      <button id="start-custom">Start Tutorial</button>
-    </div>
-    <div class="add-step-form">
-      <input type="text" id="custom-step" placeholder="Step text" />
-      <button id="add-step">Add Step</button>
-    </div>
-    <h3 id="custom-tutorial-title"></h3>
+  <div class="tutorial" id="custom-tutorial" style="display:none;">
+    <h2 id="custom-tutorial-title"></h2>
     <div id="custom-steps"></div>
+  </div>
+
+  <!-- Create Custom Form -->
+  <div class="tutorial" id="create-tutorial" style="display:none;">
+    <h2>Create Your Custom Tutorial</h2>
+    <input type="text" id="custom-title" placeholder="Tutorial Title" />
+    <br><br>
+    <input type="text" id="custom-step" placeholder="Step text" />
+    <button id="add-step">Add Step</button>
+    <p>Added steps will scroll infinitely once you finish creating it.</p>
+    <button id="finish-custom">Finish Tutorial</button>
   </div>
 
 </div>
 
 <script>
-// ===== Main Goober Tutorial =====
+// ===== Menu Handling =====
+const menu = document.getElementById("menu");
+const scrollContainer = document.getElementById("scroll-container");
+const gooberBtn = document.getElementById("goober-btn");
+const customBtn = document.getElementById("custom-btn");
+const createBtn = document.getElementById("create-btn");
+
+// ===== Goober Tutorial =====
 let step = 1;
 const mainContainer = document.getElementById("main-steps");
-
 const messages = [
   "be a goober",
   "goober around",
@@ -100,39 +104,19 @@ function addMainStep() {
   step++;
 }
 
-// Initial 40 steps
 for (let i = 0; i < 40; i++) addMainStep();
 
-// Add more steps as user scrolls
-const scrollContainer = document.getElementById("scroll-container");
-scrollContainer.addEventListener("scroll", () => {
-  if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
-    for (let i = 0; i < 10; i++) addMainStep();
-    for (let i = 0; i < customStepCount; i++) addCustomStep();
-  }
-});
-
-// ===== Custom Tutorial =====
-let customStepCount = 0;
-let customStepNumber = 1;
+// ===== Custom Tutorial Handling =====
 let customSteps = [];
+let customStepNumber = 1;
+let customTutorialTitle = "";
 
 const customTitleInput = document.getElementById("custom-title");
 const customStepInput = document.getElementById("custom-step");
-const startCustomBtn = document.getElementById("start-custom");
 const addStepBtn = document.getElementById("add-step");
+const finishCustomBtn = document.getElementById("finish-custom");
 const customTitleDisplay = document.getElementById("custom-tutorial-title");
 const customContainer = document.getElementById("custom-steps");
-
-// Start custom tutorial
-startCustomBtn.addEventListener("click", () => {
-  const title = customTitleInput.value.trim() || "My Custom Tutorial";
-  customTitleDisplay.textContent = title;
-  customSteps = [];
-  customStepNumber = 1;
-  customStepCount = 0;
-  customContainer.innerHTML = "";
-});
 
 // Add a step to custom tutorial
 addStepBtn.addEventListener("click", () => {
@@ -140,11 +124,10 @@ addStepBtn.addEventListener("click", () => {
   if (!text) return;
   customSteps.push(text);
   customStepInput.value = "";
-  customStepCount = customSteps.length;
-  addCustomStep(); // Add one step immediately
+  addCustomStep();
 });
 
-// Function to add a custom step (cycles through the list)
+// Function to add a custom step (cycles through steps)
 function addCustomStep() {
   if (customSteps.length === 0) return;
   const div = document.createElement("div");
@@ -153,6 +136,46 @@ function addCustomStep() {
   customContainer.appendChild(div);
   customStepNumber++;
 }
+
+// Finish creating custom tutorial
+finishCustomBtn.addEventListener("click", () => {
+  customTutorialTitle = customTitleInput.value.trim() || "My Custom Tutorial";
+  customTitleDisplay.textContent = customTutorialTitle;
+  document.getElementById("create-tutorial").style.display = "none";
+  document.getElementById("custom-tutorial").style.display = "block";
+  customBtn.style.display = "inline-block"; // show the menu button
+});
+
+// ===== Menu Buttons =====
+gooberBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  scrollContainer.style.display = "block";
+  document.getElementById("main-tutorial").style.display = "block";
+});
+
+customBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  scrollContainer.style.display = "block";
+  document.getElementById("custom-tutorial").style.display = "block";
+});
+
+createBtn.addEventListener("click", () => {
+  menu.style.display = "none";
+  scrollContainer.style.display = "block";
+  document.getElementById("create-tutorial").style.display = "block";
+});
+
+// ===== Infinite scrolling =====
+scrollContainer.addEventListener("scroll", () => {
+  if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
+    if (document.getElementById("main-tutorial").style.display === "block") {
+      for (let i = 0; i < 10; i++) addMainStep();
+    }
+    if (document.getElementById("custom-tutorial").style.display === "block") {
+      for (let i = 0; i < 10; i++) addCustomStep();
+    }
+  }
+});
 </script>
 </body>
 </html>
