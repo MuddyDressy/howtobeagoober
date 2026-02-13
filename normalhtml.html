@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Goober Tutorials v29</title>
+<title>Goober Tutorials v30</title>
 <style>
 body { font-family:sans-serif; margin:0; padding:0; }
 #menu, #editor, #viewer { padding:20px; }
@@ -14,9 +14,10 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 </head>
 <body>
 
+<!-- ===== Menu ===== -->
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<h2>Version: v29</h2>
+<h2>Version: v30</h2>
 <div>
 <button id="goober-btn">Goober Tutorial</button>
 </div>
@@ -25,6 +26,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <button id="reset-btn">Reset All</button>
 </div>
 
+<!-- ===== Editor ===== -->
 <div id="editor" style="display:none;">
 <h2>Edit/Create Tutorial</h2>
 <input type="text" id="title-input" placeholder="Tutorial Title"><br>
@@ -35,6 +37,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <button id="back-menu">Back to Menu</button>
 </div>
 
+<!-- ===== Viewer ===== -->
 <div id="viewer" style="display:none;">
 <h2 id="viewer-title"></h2>
 <div id="scroll-container"></div>
@@ -95,7 +98,7 @@ function refreshMenu(){
 }
 refreshMenu();
 
-// ===== Open Editor =====
+// ===== Editor Functions =====
 function openEditor(title){
   editor.style.display="block";
   viewer.style.display="none";
@@ -106,7 +109,6 @@ function openEditor(title){
   renderLinesPreview();
 }
 
-// ===== Render Preview Lines =====
 function renderLinesPreview(){
   linesPreview.innerHTML="";
   editingLines.forEach((line, idx)=>{
@@ -126,7 +128,14 @@ function renderLinesPreview(){
   });
 }
 
-// ===== Save Tutorial =====
+document.getElementById("add-line").addEventListener("click",()=>{
+  const text = lineInput.value.trim();
+  if(!text) return;
+  editingLines.push(text);
+  lineInput.value="";
+  renderLinesPreview(); // ensures new line has X button
+});
+
 document.getElementById("save-tutorial").addEventListener("click",()=>{
   const title = titleInput.value.trim()||"Untitled";
   if(editingLines.length===0) return alert("Must have at least 1 line!");
@@ -135,7 +144,7 @@ document.getElementById("save-tutorial").addEventListener("click",()=>{
   openTutorial(title);
 });
 
-// ===== Open Tutorial Viewer =====
+// ===== Viewer Functions =====
 function openTutorial(title){
   viewer.style.display="block";
   editor.style.display="none";
@@ -153,7 +162,7 @@ function openTutorial(title){
   stepNumber=41;
 }
 
-// ===== Infinite Scroll =====
+// Infinite scrolling
 scrollContainer.addEventListener("scroll",()=>{
   if(scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight-50){
     if(currentTutorial){
@@ -200,15 +209,6 @@ document.getElementById("back-menu").addEventListener("click",()=>{
 document.getElementById("back-menu-2").addEventListener("click",()=>{
   viewer.style.display="none";
   menu.style.display="block";
-});
-
-// ===== Add Line =====
-document.getElementById("add-line").addEventListener("click",()=>{
-  const text = lineInput.value.trim();
-  if(!text) return;
-  editingLines.push(text);
-  lineInput.value="";
-  renderLinesPreview();
 });
 </script>
 
