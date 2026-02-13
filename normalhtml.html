@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Goober Tutorials v33</title>
+<title>Goober Tutorials v34</title>
 <style>
 body { font-family:sans-serif; margin:0; padding:0; }
 #menu, #editor, #viewer { padding:20px; }
@@ -15,8 +15,8 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
   padding:10px;
 }
 #viewer-title, #menu h1 {
-  font-size:48px; /* consistent with menu v31 */
-  text-align:center;
+  font-size:48px; /* consistent with menu */
+  text-align:left; /* left-aligned now */
   margin:20px 0;
 }
 </style>
@@ -26,7 +26,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <!-- ===== Menu ===== -->
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<h2>Version: v33</h2>
+<h2>Version: v34</h2>
 <div>
 <button id="goober-btn">Goober Tutorial</button>
 </div>
@@ -126,8 +126,8 @@ function renderLinesPreview(){
     span.textContent=line;
     const btn = document.createElement("button");
     btn.textContent="✖";
+    // Remove the exact line
     btn.addEventListener("click",()=>{
-      // Remove the exact line
       editingLines = editingLines.filter(l => l !== line);
       renderLinesPreview();
     });
@@ -163,12 +163,12 @@ function openTutorial(title){
   currentTutorial = title;
   stepNumber = 1;
   const lines = tutorials[title];
-  for(let i=0;i<40;i++){
+  for(let i=0;i<50;i++){ // START WITH 50
     const div = document.createElement("div");
     div.textContent=`Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
     scrollContainer.appendChild(div);
   }
-  stepNumber=41;
+  stepNumber=51;
 }
 
 // Infinite scrolling
