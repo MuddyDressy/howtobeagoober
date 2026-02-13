@@ -4,28 +4,35 @@
 <meta charset="UTF-8">
 <title>Infinite Goober</title>
 <style>
-  body {
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
     font-family: sans-serif;
     line-height: 1.5;
+  }
+
+  /* Scroll container */
+  #scroll-container {
+    height: 100%;
+    overflow-y: scroll; /* scrolling works */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  #scroll-container::-webkit-scrollbar {
+    width: 0; /* Chrome, Edge, Safari */
+  }
+
+  #steps {
     padding: 20px;
-    overflow-y: scroll; /* allow vertical scrolling */
-  }
-
-  /* Hide scrollbar for Chrome, Edge, Safari */
-  body::-webkit-scrollbar {
-    width: 0px;
-    background: transparent;
-  }
-
-  /* Hide scrollbar for Firefox */
-  body {
-    scrollbar-width: none;
   }
 </style>
 </head>
 <body>
-<h1>How To Be a Goober</h1>
-<div id="steps"></div>
+<div id="scroll-container">
+  <h1>How To Be a Goober</h1>
+  <div id="steps"></div>
+</div>
 
 <script>
 let step = 1;
@@ -43,8 +50,9 @@ function addStep() {
 for (let i = 0; i < 40; i++) addStep();
 
 // Add more steps as user scrolls
-window.addEventListener("scroll", () => {
-  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
+const scrollContainer = document.getElementById("scroll-container");
+scrollContainer.addEventListener("scroll", () => {
+  if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
     for (let i = 0; i < 10; i++) addStep();
   }
 });
