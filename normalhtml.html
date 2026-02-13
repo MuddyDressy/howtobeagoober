@@ -17,27 +17,21 @@
   }
 
   button {
-    padding: 10px 20px;
+    padding: 8px 16px;
     margin: 5px;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
   }
 
   #scroll-container {
     height: 100%;
     overflow-y: scroll;
-    scrollbar-width: none; 
+    scrollbar-width: none;
   }
 
-  #scroll-container::-webkit-scrollbar {
-    width: 0;
-  }
+  #scroll-container::-webkit-scrollbar { width: 0; }
 
-  input {
-    padding: 5px;
-    font-size: 14px;
-    margin-bottom: 5px;
-  }
+  input { padding: 5px; font-size: 14px; margin-bottom: 5px; }
 
   .line-item {
     display: flex;
@@ -49,6 +43,17 @@
     padding: 0 5px;
     font-size: 12px;
   }
+
+  .tutorial-button-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+
+  .tutorial-button-wrapper button {
+    margin-right: 5px;
+  }
+
 </style>
 </head>
 <body>
@@ -56,7 +61,9 @@
 <!-- Menu -->
 <div id="menu">
   <h1>Welcome to Goober Tutorials</h1>
-  <button id="goober-btn">Goober Tutorial</button>
+  <div id="main-tutorial-wrapper" class="tutorial-button-wrapper">
+    <button id="edit-goober-btn">Goober Tutorial</button>
+  </div>
   <div id="custom-list"></div>
   <button id="create-btn">Create Custom</button>
 </div>
@@ -76,7 +83,7 @@
     <div id="custom-steps"></div>
   </div>
 
-  <!-- Create/Edit Custom Tutorial -->
+  <!-- Create/Edit Tutorial -->
   <div class="tutorial" id="create-tutorial" style="display:none;">
     <h2>Create/Edit Tutorial</h2>
     <input type="text" id="custom-title" placeholder="Tutorial Title" />
@@ -91,184 +98,178 @@
 </div>
 
 <script>
-// ===== Menu Handling =====
+// ===== Storage =====
+let tutorials = JSON.parse(localStorage.getItem("tutorials") || "{}");
+
+// ===== Menu Buttons =====
 const menu = document.getElementById("menu");
 const scrollContainer = document.getElementById("scroll-container");
-const gooberBtn = document.getElementById("goober-btn");
 const createBtn = document.getElementById("create-btn");
 const customListDiv = document.getElementById("custom-list");
+const editGooberBtn = document.getElementById("edit-goober-btn");
 
-// ===== Main Goober Tutorial =====
-let step = 1;
+const mainTutorial = document.getElementById("main-tutorial");
 const mainContainer = document.getElementById("main-steps");
-const messages = [
-  "be a goober",
-  "goober around",
-  "just goob",
-  "try goobin",
-  "if it doesn't work, goob again",
-  "goober",
-  "uh, is that it, WAIT NO i forgot theres more",
-  "goummberbrrrrrrrrrtrr",
-  "goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-];
+let step = 1;
 
-function randomMessage() {
-  return messages[Math.floor(Math.random() * messages.length)];
+// ===== Default Main Goober Tutorial Lines =====
+if (!tutorials["Goober Tutorial"]) {
+  tutorials["Goober Tutorial"] = [
+    "be a goober",
+    "goober around",
+    "just goob",
+    "try goobin",
+    "if it doesn't work, goob again",
+    "goober",
+    "uh, is that it, WAIT NO i forgot theres more",
+    "goummberbrrrrrrrrrtrr",
+    "goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+  ];
+  localStorage.setItem("tutorials", JSON.stringify(tutorials));
 }
 
-function addMainStep() {
-  const div = document.createElement("div");
-  div.textContent = `Step ${step}: ${randomMessage()}`;
-  mainContainer.appendChild(div);
-  step++;
-}
-
-for (let i = 0; i < 40; i++) addMainStep();
-
-// ===== Custom Tutorials Storage =====
-let customTutorials = JSON.parse(localStorage.getItem("customTutorials") || "{}");
-let currentCustom = null; // currently viewing tutorial
-let customStepNumber = 1;
-
-// ===== Update Menu Buttons for Custom Tutorials =====
+// ===== Render Custom Buttons =====
 function refreshCustomMenu() {
   customListDiv.innerHTML = "";
-  for (const key in customTutorials) {
+  for (const key in tutorials) {
+    if (key === "Goober Tutorial") continue;
+    const wrapper = document.createElement("div");
+    wrapper.className = "tutorial-button-wrapper";
+
     const btn = document.createElement("button");
     btn.textContent = key;
-    btn.addEventListener("click", () => openCustomTutorial(key));
+    btn.addEventListener("click", () => openTutorial(key));
     btn.addEventListener("contextmenu", e => {
       e.preventDefault();
-      editCustomTutorial(key);
+      editTutorial(key);
     });
-    customListDiv.appendChild(btn);
+    wrapper.appendChild(btn);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "✖";
+    deleteBtn.addEventListener("click", () => {
+      if (confirm(`Delete tutorial "${key}"?`)) {
+        delete tutorials[key];
+        localStorage.setItem("tutorials", JSON.stringify(tutorials));
+        refreshCustomMenu();
+      }
+    });
+    wrapper.appendChild(deleteBtn);
+    customListDiv.appendChild(wrapper);
   }
 }
 refreshCustomMenu();
 
-// ===== Open Custom Tutorial =====
-const customTitleDisplay = document.getElementById("custom-tutorial-title");
+// ===== Open Tutorial =====
+const customTutorialDiv = document.getElementById("custom-tutorial");
 const customContainer = document.getElementById("custom-steps");
+const customTitleDisplay = document.getElementById("custom-tutorial-title");
+let currentTutorial = null;
+let customStepNumber = 1;
 
-function openCustomTutorial(title) {
+function openTutorial(title) {
+  currentTutorial = title;
   menu.style.display = "none";
   scrollContainer.style.display = "block";
-  document.getElementById("main-tutorial").style.display = "none";
+  mainTutorial.style.display = "none";
+  customTutorialDiv.style.display = "block";
   document.getElementById("create-tutorial").style.display = "none";
-  document.getElementById("custom-tutorial").style.display = "block";
-  currentCustom = title;
   customContainer.innerHTML = "";
   customStepNumber = 1;
 
-  const lines = customTutorials[title];
-  // Fill initial 40 steps randomly from lines
+  const lines = tutorials[title];
   for (let i = 0; i < 40; i++) {
     const div = document.createElement("div");
-    const line = lines[Math.floor(Math.random() * lines.length)];
-    div.textContent = `Step ${i + 1}: ${line}`;
+    div.textContent = `Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
     customContainer.appendChild(div);
   }
   customStepNumber = 41;
   customTitleDisplay.textContent = title;
 }
 
-// ===== Edit/Create Custom Tutorial =====
-const createTutorialDiv = document.getElementById("create-tutorial");
+// ===== Edit Tutorial (includes main Goober tutorial) =====
+const createDiv = document.getElementById("create-tutorial");
 const customTitleInput = document.getElementById("custom-title");
 const customLineInput = document.getElementById("custom-line");
 const addLineBtn = document.getElementById("add-line");
-const finishCustomBtn = document.getElementById("finish-custom");
+const finishBtn = document.getElementById("finish-custom");
 const previewLines = document.getElementById("preview-lines");
-
 let editingLines = [];
+let editingTitle = "";
 
-// Add a line to preview
+function editTutorial(title) {
+  editingTitle = title;
+  editingLines = [...tutorials[title]];
+  renderPreview();
+  customTitleInput.value = title;
+  menu.style.display = "none";
+  scrollContainer.style.display = "block";
+  createDiv.style.display = "block";
+  mainTutorial.style.display = "none";
+  customTutorialDiv.style.display = "none";
+}
+
+// Add line
 addLineBtn.addEventListener("click", () => {
   const text = customLineInput.value.trim();
   if (!text) return;
   editingLines.push(text);
   customLineInput.value = "";
-  renderPreviewLines();
+  renderPreview();
 });
 
-// Render preview lines with remove button
-function renderPreviewLines() {
+// Render preview lines with remove
+function renderPreview() {
   previewLines.innerHTML = "";
-  editingLines.forEach((line, index) => {
+  editingLines.forEach((line, idx) => {
     const div = document.createElement("div");
     div.className = "line-item";
     div.innerHTML = `<span>${line}</span>`;
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "✖";
     removeBtn.addEventListener("click", () => {
-      editingLines.splice(index, 1);
-      renderPreviewLines();
+      editingLines.splice(idx,1);
+      renderPreview();
     });
     div.appendChild(removeBtn);
     previewLines.appendChild(div);
   });
 }
 
-// Finish and save tutorial
-finishCustomBtn.addEventListener("click", () => {
+// Finish editing/creating
+finishBtn.addEventListener("click", () => {
   const title = customTitleInput.value.trim() || "Untitled Tutorial";
   if (editingLines.length === 0) return;
-  customTutorials[title] = editingLines;
-  localStorage.setItem("customTutorials", JSON.stringify(customTutorials));
+  tutorials[title] = editingLines;
+  localStorage.setItem("tutorials", JSON.stringify(tutorials));
   refreshCustomMenu();
-  openCustomTutorial(title);
+  openTutorial(title);
 });
 
-// ===== Menu Buttons =====
-gooberBtn.addEventListener("click", () => {
-  menu.style.display = "none";
-  scrollContainer.style.display = "block";
-  document.getElementById("main-tutorial").style.display = "block";
-  document.getElementById("custom-tutorial").style.display = "none";
-  document.getElementById("create-tutorial").style.display = "none";
-});
-
-// Create new custom tutorial
+// ===== Menu buttons =====
 createBtn.addEventListener("click", () => {
-  menu.style.display = "none";
-  scrollContainer.style.display = "block";
-  createTutorialDiv.style.display = "block";
-  document.getElementById("main-tutorial").style.display = "none";
-  document.getElementById("custom-tutorial").style.display = "none";
+  editingLines = [];
+  editingTitle = "";
   customTitleInput.value = "";
   customLineInput.value = "";
-  editingLines = [];
-  renderPreviewLines();
-});
-
-// Edit existing tutorial
-function editCustomTutorial(title) {
+  renderPreview();
   menu.style.display = "none";
   scrollContainer.style.display = "block";
-  createTutorialDiv.style.display = "block";
-  document.getElementById("main-tutorial").style.display = "none";
-  document.getElementById("custom-tutorial").style.display = "none";
-  customTitleInput.value = title;
-  editingLines = [...customTutorials[title]];
-  renderPreviewLines();
-}
+  createDiv.style.display = "block";
+  mainTutorial.style.display = "none";
+  customTutorialDiv.style.display = "none";
+});
 
-// ===== Infinite Scrolling =====
+editGooberBtn.addEventListener("click", () => editTutorial("Goober Tutorial"));
+
+// ===== Infinite Scroll =====
 scrollContainer.addEventListener("scroll", () => {
   if (scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 50) {
-    // Main tutorial
-    if (document.getElementById("main-tutorial").style.display === "block") {
-      for (let i = 0; i < 10; i++) addMainStep();
-    }
-
-    // Custom tutorial
-    if (document.getElementById("custom-tutorial").style.display === "block" && currentCustom) {
-      const lines = customTutorials[currentCustom];
-      for (let i = 0; i < 10; i++) {
+    if (customTutorialDiv.style.display==="block" && currentTutorial) {
+      const lines = tutorials[currentTutorial];
+      for (let i=0;i<10;i++){
         const div = document.createElement("div");
-        const line = lines[Math.floor(Math.random() * lines.length)];
-        div.textContent = `Step ${customStepNumber}: ${line}`;
+        div.textContent = `Step ${customStepNumber}: ${lines[Math.floor(Math.random()*lines.length)]}`;
         customContainer.appendChild(div);
         customStepNumber++;
       }
