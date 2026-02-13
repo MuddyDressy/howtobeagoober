@@ -16,7 +16,7 @@ button { margin:4px; padding:8px 16px; cursor:pointer; font-size:14px; }
 #scroll-container::-webkit-scrollbar { width:0; }
 h1, h2 { text-align:left; margin:20px 0; }
 div.step { margin-bottom:5px; }
-.version { margin-top:20px; font-size:14px; color:gray; }
+.version { font-size:14px; color:gray; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -28,7 +28,7 @@ div.step { margin-bottom:5px; }
 <div id="custom-list"></div>
 <button id="create-btn">Create Custom</button>
 <button id="reset-btn">Reset All</button>
-<div class="version">v37</div>
+<div class="version">v38</div>
 </div>
 
 <!-- ===== Editor ===== -->
@@ -40,15 +40,15 @@ div.step { margin-bottom:5px; }
 <div id="lines-preview"></div>
 <button id="save-tutorial">Save Tutorial</button>
 <button id="back-menu">Back to Menu</button>
-<div class="version">v37</div>
+<div class="version">v38</div>
 </div>
 
 <!-- ===== Viewer ===== -->
 <div id="viewer" style="display:none;">
 <div id="scroll-container">
-<h1 id="viewer-title"></h1>
+<!-- title and steps inserted dynamically -->
 </div>
-<div class="version">v37</div>
+<div class="version">v38</div>
 </div>
 
 <script>
@@ -74,7 +74,6 @@ const linesPreview = document.getElementById("lines-preview");
 const titleInput = document.getElementById("title-input");
 const lineInput = document.getElementById("line-input");
 const scrollContainer = document.getElementById("scroll-container");
-const viewerTitle = document.getElementById("viewer-title");
 
 let editingLines = [];
 let editingTitle = "";
@@ -135,15 +134,22 @@ function openTutorial(title){
   viewer.style.display="block";
   editor.style.display="none";
   menu.style.display="none";
-  scrollContainer.innerHTML="";
-  viewerTitle.textContent = title;
+  scrollContainer.innerHTML = "";
+
+  // Insert title at top
+  const titleElement = document.createElement("h1");
+  titleElement.textContent = title;
+  scrollContainer.appendChild(titleElement);
+
   currentTutorial = title;
   stepNumber = 1;
   const lines = tutorials[title];
-  for(let i=0;i<50;i++){ // START WITH 50
+
+  // Add initial 50 steps
+  for(let i=0;i<50;i++){
     const div = document.createElement("div");
     div.className="step";
-    div.textContent=`Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
+    div.textContent = `Step ${stepNumber}: ${lines[Math.floor(Math.random()*lines.length)]}`;
     scrollContainer.appendChild(div);
     stepNumber++;
   }
