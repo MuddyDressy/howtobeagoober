@@ -4,26 +4,18 @@
 <meta charset="UTF-8">
 <title>Goober Tutorials</title>
 <style>
-body { font-family:sans-serif; margin:0; padding:0; }
+body { font-family: sans-serif; margin:0; padding:0; }
+button { margin:4px; padding:8px 16px; cursor:pointer; font-size:14px; }
 #menu, #editor, #viewer { padding:20px; }
-button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
-.line-item { display:flex; justify-content:space-between; margin-bottom:5px; }
-.line-item button { padding:2px 6px; font-size:14px; color:red; font-weight:bold; }
 #scroll-container {
-  height: 100vh;
-  overflow-y: scroll;       /* scrollable */
-  padding:10px;
-  scrollbar-width: none;    /* Firefox */
+  height:100vh;
+  overflow-y:scroll;
+  padding:20px;
+  scrollbar-width:none;
 }
-#scroll-container::-webkit-scrollbar {
-  width:0;                  /* Chrome, Edge, Safari */
-}
-#viewer-title, #menu h1 {
-  font-size:48px;
-  text-align:left;
-  margin:20px 0;
-  display:block;            /* scrolls with content */
-}
+#scroll-container::-webkit-scrollbar { width:0; }
+h1, h2 { text-align:left; margin:20px 0; }
+div.step { margin-bottom:5px; }
 </style>
 </head>
 <body>
@@ -31,9 +23,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <!-- ===== Menu ===== -->
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<div>
 <button id="goober-btn">Goober Tutorial</button>
-</div>
 <div id="custom-list"></div>
 <button id="create-btn">Create Custom</button>
 <button id="reset-btn">Reset All</button>
@@ -41,7 +31,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 
 <!-- ===== Editor ===== -->
 <div id="editor" style="display:none;">
-<h2>Edit/Create Tutorial</h2>
+<h2>Create/Edit Tutorial</h2>
 <input type="text" id="title-input" placeholder="Tutorial Title"><br>
 <input type="text" id="line-input" placeholder="Line text">
 <button id="add-line">Add Line</button>
@@ -54,7 +44,6 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <div id="viewer" style="display:none;">
 <div id="scroll-container">
 <h1 id="viewer-title"></h1>
-<!-- steps appended here -->
 </div>
 </div>
 
@@ -93,24 +82,10 @@ function refreshMenu(){
   customList.innerHTML = "";
   for(const key in tutorials){
     if(key==="Goober Tutorial") continue;
-    const wrapper = document.createElement("div");
-    wrapper.style.marginBottom="4px";
     const btn = document.createElement("button");
     btn.textContent = key;
     btn.addEventListener("click",()=>openTutorial(key));
-    btn.addEventListener("contextmenu",e=>{e.preventDefault(); openEditor(key)});
-    wrapper.appendChild(btn);
-    const delBtn = document.createElement("button");
-    delBtn.textContent="✖";
-    delBtn.addEventListener("click",()=>{
-      if(confirm(`Delete "${key}"?`)){
-        delete tutorials[key];
-        localStorage.setItem("tutorials",JSON.stringify(tutorials));
-        refreshMenu();
-      }
-    });
-    wrapper.appendChild(delBtn);
-    customList.appendChild(wrapper);
+    customList.appendChild(btn);
   }
 }
 refreshMenu();
@@ -128,19 +103,9 @@ function openEditor(title){
 
 function renderLinesPreview(){
   linesPreview.innerHTML="";
-  editingLines.forEach((line, idx)=>{
+  editingLines.forEach(line=>{
     const div = document.createElement("div");
-    div.className="line-item";
-    const span = document.createElement("span");
-    span.textContent=line;
-    const btn = document.createElement("button");
-    btn.textContent="✖";
-    btn.addEventListener("click",()=>{
-      editingLines.splice(idx,1); // remove exact line
-      renderLinesPreview();
-    });
-    div.appendChild(span);
-    div.appendChild(btn);
+    div.textContent=line;
     linesPreview.appendChild(div);
   });
 }
@@ -150,7 +115,7 @@ document.getElementById("add-line").addEventListener("click",()=>{
   if(!text) return;
   editingLines.push(text);
   lineInput.value="";
-  renderLinesPreview(); // ensures new line has ✖
+  renderLinesPreview();
 });
 
 document.getElementById("save-tutorial").addEventListener("click",()=>{
@@ -173,10 +138,11 @@ function openTutorial(title){
   const lines = tutorials[title];
   for(let i=0;i<50;i++){ // START WITH 50
     const div = document.createElement("div");
+    div.className="step";
     div.textContent=`Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
     scrollContainer.appendChild(div);
+    stepNumber++;
   }
-  stepNumber=51;
 }
 
 // Infinite scrolling
@@ -186,6 +152,7 @@ scrollContainer.addEventListener("scroll",()=>{
       const lines = tutorials[currentTutorial];
       for(let i=0;i<10;i++){
         const div=document.createElement("div");
+        div.className="step";
         div.textContent=`Step ${stepNumber}: ${lines[Math.floor(Math.random()*lines.length)]}`;
         scrollContainer.appendChild(div);
         stepNumber++;
@@ -206,7 +173,6 @@ document.getElementById("create-btn").addEventListener("click", ()=>{
 });
 
 document.getElementById("goober-btn").addEventListener("click",()=>openTutorial("Goober Tutorial"));
-document.getElementById("goober-btn").addEventListener("contextmenu", e=>{e.preventDefault(); openEditor("Goober Tutorial");});
 
 document.getElementById("reset-btn").addEventListener("click",()=>{
   if(confirm("Reset all tutorials to default?")){
