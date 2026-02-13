@@ -38,10 +38,28 @@
 let step = 1;
 const container = document.getElementById("steps");
 
+// Array of possible messages
+const messages = [
+  "be a goober",
+  "goober around",
+  "just goob",
+  "try goobin",
+  "if it doesn't work, goob again",
+  "goober",
+  "uh, is that it, WAIT NO i forgot theres more",
+  "goummberbrrrrrrrrrtrr",
+  "goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+];
+
+// Function to pick a random message
+function randomMessage() {
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
 // Function to add one step
 function addStep() {
   const div = document.createElement("div");
-  div.textContent = `Step ${step}: be a goober`;
+  div.textContent = `Step ${step}: ${randomMessage()}`;
   container.appendChild(div);
   step++;
 }
