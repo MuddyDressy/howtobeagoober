@@ -5,7 +5,7 @@
 <title>Goober Tutorials</title>
 <style>
 body { font-family: sans-serif; margin:0; padding:0; }
-button { margin:4px; padding:8px 16px; cursor:pointer; font-size:14px; }
+button { margin:4px; padding:6px 12px; cursor:pointer; font-size:14px; }
 #menu, #editor, #viewer { padding:20px; }
 #scroll-container {
   height:100vh;
@@ -17,6 +17,8 @@ button { margin:4px; padding:8px 16px; cursor:pointer; font-size:14px; }
 h1, h2 { text-align:left; margin:20px 0; }
 div.step { margin-bottom:5px; }
 .version { font-size:14px; color:gray; margin-top:10px; }
+.tutorial-btn { position:relative; display:inline-block; margin:4px; }
+.delete-btn { color:white; background:red; border:none; padding:2px 5px; cursor:pointer; font-weight:bold; margin-left:4px; }
 </style>
 </head>
 <body>
@@ -28,7 +30,7 @@ div.step { margin-bottom:5px; }
 <div id="custom-list"></div>
 <button id="create-btn">Create Custom</button>
 <button id="reset-btn">Reset All</button>
-<div class="version">v38</div>
+<div class="version">v39</div>
 </div>
 
 <!-- ===== Editor ===== -->
@@ -40,7 +42,7 @@ div.step { margin-bottom:5px; }
 <div id="lines-preview"></div>
 <button id="save-tutorial">Save Tutorial</button>
 <button id="back-menu">Back to Menu</button>
-<div class="version">v38</div>
+<div class="version">v39</div>
 </div>
 
 <!-- ===== Viewer ===== -->
@@ -48,7 +50,7 @@ div.step { margin-bottom:5px; }
 <div id="scroll-container">
 <!-- title and steps inserted dynamically -->
 </div>
-<div class="version">v38</div>
+<div class="version">v39</div>
 </div>
 
 <script>
@@ -85,10 +87,29 @@ function refreshMenu(){
   customList.innerHTML = "";
   for(const key in tutorials){
     if(key==="Goober Tutorial") continue;
+    const wrapper = document.createElement("div");
+    wrapper.className="tutorial-btn";
     const btn = document.createElement("button");
     btn.textContent = key;
     btn.addEventListener("click",()=>openTutorial(key));
-    customList.appendChild(btn);
+    btn.addEventListener("contextmenu",(e)=>{ 
+      e.preventDefault(); 
+      openEditor(key); 
+    });
+    const del = document.createElement("button");
+    del.textContent="✖";
+    del.className="delete-btn";
+    del.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      if(confirm(`Delete tutorial "${key}"?`)){
+        delete tutorials[key];
+        localStorage.setItem("tutorials",JSON.stringify(tutorials));
+        refreshMenu();
+      }
+    });
+    wrapper.appendChild(btn);
+    wrapper.appendChild(del);
+    customList.appendChild(wrapper);
   }
 }
 refreshMenu();
