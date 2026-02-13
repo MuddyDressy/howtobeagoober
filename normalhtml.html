@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Goober Tutorials v30</title>
+<title>Goober Tutorials v31</title>
 <style>
 body { font-family:sans-serif; margin:0; padding:0; }
 #menu, #editor, #viewer { padding:20px; }
 button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 .line-item { display:flex; justify-content:space-between; margin-bottom:5px; }
 .line-item button { padding:2px 6px; font-size:14px; }
-#scroll-container { height:80vh; overflow-y:scroll; border-top:1px solid #ccc; padding:10px; }
+#scroll-container {
+  height: calc(100vh - 100px); /* fills almost full viewport */
+  overflow-y: scroll;
+  border-top:1px solid #ccc;
+  padding:10px;
+}
 </style>
 </head>
 <body>
@@ -17,7 +22,7 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <!-- ===== Menu ===== -->
 <div id="menu">
 <h1>Goober Tutorials</h1>
-<h2>Version: v30</h2>
+<h2>Version: v31</h2>
 <div>
 <button id="goober-btn">Goober Tutorial</button>
 </div>
@@ -40,8 +45,8 @@ button { margin:4px; cursor:pointer; padding:8px 16px; font-size:14px; }
 <!-- ===== Viewer ===== -->
 <div id="viewer" style="display:none;">
 <h2 id="viewer-title"></h2>
-<div id="scroll-container"></div>
-<button id="back-menu-2">Back to Menu</button>
+<div id="scroll-container"></div> <!-- steps scroll here -->
+<button id="back-menu-2">Back to Menu</button> <!-- outside scroll container -->
 </div>
 
 <script>
@@ -111,7 +116,7 @@ function openEditor(title){
 
 function renderLinesPreview(){
   linesPreview.innerHTML="";
-  editingLines.forEach((line, idx)=>{
+  editingLines.forEach((line)=>{
     const div = document.createElement("div");
     div.className="line-item";
     const span = document.createElement("span");
@@ -119,7 +124,7 @@ function renderLinesPreview(){
     const btn = document.createElement("button");
     btn.textContent="✖";
     btn.addEventListener("click",()=>{
-      editingLines.splice(idx,1);
+      editingLines = editingLines.filter(l => l!==line); // remove correctly
       renderLinesPreview();
     });
     div.appendChild(span);
@@ -154,6 +159,7 @@ function openTutorial(title){
   currentTutorial = title;
   stepNumber = 1;
   const lines = tutorials[title];
+  // start with 40 random steps off-screen
   for(let i=0;i<40;i++){
     const div = document.createElement("div");
     div.textContent=`Step ${i+1}: ${lines[Math.floor(Math.random()*lines.length)]}`;
