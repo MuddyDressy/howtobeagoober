@@ -41,7 +41,7 @@ div.step { margin-bottom:5px; }
 <div id="lines-preview"></div>
 <button id="save-tutorial">Save Tutorial</button>
 <button id="back-menu">Back to Menu</button>
-<div class="version">v40</div>
+<div class="version">v41</div>
 </div>
 
 <!-- ===== Viewer ===== -->
@@ -55,11 +55,20 @@ div.step { margin-bottom:5px; }
 <script>
 // ===== Storage =====
 let tutorials = JSON.parse(localStorage.getItem("tutorials") || "{}");
+let stepNumber
 const defaultGoober = [
 "be a goober","goober around","just goob","try goobin",
 "if it doesn't work, goob again","goober",
 "uh, is that it, WAIT NO i forgot theres more",
-"goummberbrrrrrrrrrtrr","goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+"goummberbrrrrrrrrrtrr","goobrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", "becoem paankae", "goob gob goob goobbberrrr",
+"write a essay on what it is to be a goober",
+"make stupid code like this",
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah",
+"wait no dont do any of what i said before, continue with the following steps instead",
+"...your on step " + stepNumber + "... arent you, well be a goober",
+"idk",
+"be be be be be a goober",
+"aargaga"
 ];
 if(!tutorials["Goober Tutorial"]) {
   tutorials["Goober Tutorial"] = [...defaultGoober];
