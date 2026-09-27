@@ -24,7 +24,7 @@ button {
 }
 
 #scroll-container {
-  height: 100vh;
+  height: calc(100vh - 80px);
   overflow-y: scroll;
   padding: 20px;
   box-sizing: border-box;
@@ -65,12 +65,22 @@ div.step {
   font-weight: bold;
   margin-left: 4px;
 }
+
+#lines-preview {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.preview-line {
+  margin: 3px 0;
+}
 </style>
 </head>
 
 <body>
 
 <!-- ===== Menu ===== -->
+
 <div id="menu">
   <h1>Goober Tutorials</h1>
 
@@ -84,13 +94,25 @@ div.step {
 
 
 <!-- ===== Editor ===== -->
+
 <div id="editor" style="display:none;">
+
   <h2>Create/Edit Tutorial</h2>
 
-  <input type="text" id="title-input" placeholder="Tutorial Title">
+  <input
+    type="text"
+    id="title-input"
+    placeholder="Tutorial Title"
+  >
+
   <br>
 
-  <input type="text" id="line-input" placeholder="Line text">
+  <input
+    type="text"
+    id="line-input"
+    placeholder="Line text"
+  >
+
   <button id="add-line">Add Line</button>
 
   <div id="lines-preview"></div>
@@ -103,6 +125,7 @@ div.step {
 
 
 <!-- ===== Viewer ===== -->
+
 <div id="viewer" style="display:none;">
 
   <div id="scroll-container"></div>
@@ -117,15 +140,21 @@ div.step {
 
 // ===== Storage =====
 
-let tutorials = JSON.parse(
-  localStorage.getItem("tutorials") || "{}"
-);
+let tutorials;
+
+try {
+  tutorials = JSON.parse(
+    localStorage.getItem("tutorials") || "{}"
+  );
+} catch {
+  tutorials = {};
+}
 
 
 // ===== Variables =====
 
-let stepNumber = 1;
 let currentTutorial = "";
+let stepNumber = 1;
 let editingLines = [];
 let editingTitle = "";
 
@@ -148,16 +177,20 @@ const defaultGoober = [
   "make stupid code like this",
   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaah",
   "wait no dont do any of what i said before, continue with the following steps instead",
-  "...your on a step... arent you, well be a goober",
+  "...your on step... arent you, well be a goober",
   "idk",
   "be be be be be a goober",
   "aargaga"
 ];
 
 
-// ===== Create Default Tutorial If Needed =====
+// ===== Make Sure Default Tutorial Exists =====
 
-if (!tutorials["Goober Tutorial"]) {
+if (
+  !tutorials["Goober Tutorial"] ||
+  !Array.isArray(tutorials["Goober Tutorial"]) ||
+  tutorials["Goober Tutorial"].length === 0
+) {
   tutorials["Goober Tutorial"] = [...defaultGoober];
 
   localStorage.setItem(
@@ -169,22 +202,32 @@ if (!tutorials["Goober Tutorial"]) {
 
 // ===== Elements =====
 
-const menu = document.getElementById("menu");
-const tutorialButtonsDiv = document.getElementById("tutorial-buttons");
+const menu =
+  document.getElementById("menu");
 
-const editor = document.getElementById("editor");
-const viewer = document.getElementById("viewer");
+const tutorialButtonsDiv =
+  document.getElementById("tutorial-buttons");
 
-const linesPreview = document.getElementById("lines-preview");
+const editor =
+  document.getElementById("editor");
 
-const titleInput = document.getElementById("title-input");
-const lineInput = document.getElementById("line-input");
+const viewer =
+  document.getElementById("viewer");
+
+const linesPreview =
+  document.getElementById("lines-preview");
+
+const titleInput =
+  document.getElementById("title-input");
+
+const lineInput =
+  document.getElementById("line-input");
 
 const scrollContainer =
   document.getElementById("scroll-container");
 
 
-// ===== Show Screen =====
+// ===== Screen Switching =====
 
 function showMenu() {
   menu.style.display = "block";
@@ -205,59 +248,82 @@ function showViewer() {
 }
 
 
+// ===== Save Storage =====
+
+function saveTutorials() {
+  localStorage.setItem(
+    "tutorials",
+    JSON.stringify(tutorials)
+  );
+}
+
+
 // ===== Menu =====
 
 function refreshMenu() {
 
   tutorialButtonsDiv.innerHTML = "";
 
-  for (const key in tutorials) {
+  const names = Object.keys(tutorials);
 
-    const wrapper = document.createElement("div");
+  for (const key of names) {
+
+    const wrapper =
+      document.createElement("div");
+
     wrapper.className = "tutorial-btn";
 
 
     // Tutorial button
 
-    const btn = document.createElement("button");
+    const btn =
+      document.createElement("button");
 
     btn.textContent = key;
 
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", function() {
       openTutorial(key);
     });
 
 
     // Right click = edit
 
-    btn.addEventListener("contextmenu", (e) => {
+    btn.addEventListener("contextmenu", function(e) {
 
       e.preventDefault();
 
       openEditor(key);
-
     });
 
 
     // Delete button
 
-    const del = document.createElement("button");
+    const del =
+      document.createElement("button");
 
     del.textContent = "✖";
     del.className = "delete-btn";
 
-    del.addEventListener("click", (e) => {
+    del.addEventListener("click", function(e) {
 
       e.stopPropagation();
 
-      if (confirm(`Delete tutorial "${key}"?`)) {
+      if (key === "Goober Tutorial") {
+
+        alert("You can't delete the main Goober Tutorial!");
+
+        return;
+      }
+
+      if (
+        confirm(
+          `Delete tutorial "${key}"?`
+        )
+      ) {
 
         delete tutorials[key];
 
-        localStorage.setItem(
-          "tutorials",
-          JSON.stringify(tutorials)
-        );
+        saveTutorials();
 
         refreshMenu();
       }
@@ -282,9 +348,15 @@ function openEditor(title) {
   showEditor();
 
   editingTitle = title;
-  editingLines = [...tutorials[title]];
 
-  titleInput.value = title;
+  if (title && tutorials[title]) {
+    editingLines = [...tutorials[title]];
+    titleInput.value = title;
+  } else {
+    editingLines = [];
+    titleInput.value = "";
+  }
+
   lineInput.value = "";
 
   renderLinesPreview();
@@ -295,53 +367,64 @@ function renderLinesPreview() {
 
   linesPreview.innerHTML = "";
 
-  editingLines.forEach((line, index) => {
+  editingLines.forEach(function(line, index) {
 
-    const div = document.createElement("div");
+    const div =
+      document.createElement("div");
 
-    div.textContent = `${index + 1}. ${line}`;
+    div.className = "preview-line";
+
+    div.textContent =
+      `${index + 1}. ${line}`;
 
     linesPreview.appendChild(div);
   });
 }
 
 
-// Add line
+// ===== Add Line =====
 
 document
   .getElementById("add-line")
-  .addEventListener("click", () => {
+  .addEventListener("click", function() {
 
-    const text = lineInput.value.trim();
+    const text =
+      lineInput.value.trim();
 
-    if (!text) return;
+    if (!text) {
+      return;
+    }
 
     editingLines.push(text);
 
     lineInput.value = "";
 
     renderLinesPreview();
+
+    lineInput.focus();
   });
 
 
-// Allow Enter to add a line
+// Enter also adds a line
 
-lineInput.addEventListener("keydown", (e) => {
+lineInput.addEventListener("keydown", function(e) {
 
   if (e.key === "Enter") {
 
     e.preventDefault();
 
-    document.getElementById("add-line").click();
+    document
+      .getElementById("add-line")
+      .click();
   }
 });
 
 
-// Save tutorial
+// ===== Save Tutorial =====
 
 document
   .getElementById("save-tutorial")
-  .addEventListener("click", () => {
+  .addEventListener("click", function() {
 
     const title =
       titleInput.value.trim() || "Untitled";
@@ -355,24 +438,23 @@ document
     }
 
 
-    // If the title changed, remove the old version
+    // Don't allow duplicate titles
+    // when renaming
 
     if (
       editingTitle &&
       editingTitle !== title &&
       tutorials[editingTitle]
     ) {
+
       delete tutorials[editingTitle];
     }
 
 
-    tutorials[title] = [...editingLines];
+    tutorials[title] =
+      [...editingLines];
 
-    localStorage.setItem(
-      "tutorials",
-      JSON.stringify(tutorials)
-    );
-
+    saveTutorials();
 
     refreshMenu();
 
@@ -380,35 +462,47 @@ document
   });
 
 
-// Back to menu
-
-document
-  .getElementById("back-menu")
-  .addEventListener("click", () => {
-
-    showMenu();
-  });
-
-
 // ===== Viewer =====
 
 function addSteps(amount) {
 
-  if (!currentTutorial) return;
-
-  const lines = tutorials[currentTutorial];
-
-  if (!lines || lines.length === 0) return;
+  if (!currentTutorial) {
+    return;
+  }
 
 
-  for (let i = 0; i < amount; i++) {
+  const lines =
+    tutorials[currentTutorial];
 
-    const div = document.createElement("div");
+
+  if (
+    !Array.isArray(lines) ||
+    lines.length === 0
+  ) {
+    return;
+  }
+
+
+  for (
+    let i = 0;
+    i < amount;
+    i++
+  ) {
+
+    const div =
+      document.createElement("div");
 
     div.className = "step";
 
+
+    const randomIndex =
+      Math.floor(
+        Math.random() * lines.length
+      );
+
+
     const randomLine =
-      lines[Math.floor(Math.random() * lines.length)];
+      lines[randomIndex];
 
 
     div.textContent =
@@ -424,13 +518,21 @@ function addSteps(amount) {
 
 function openTutorial(title) {
 
-  showViewer();
+  if (
+    !tutorials[title] ||
+    !Array.isArray(tutorials[title]) ||
+    tutorials[title].length === 0
+  ) {
+    return;
+  }
 
-  scrollContainer.innerHTML = "";
 
   currentTutorial = title;
 
   stepNumber = 1;
+
+
+  scrollContainer.innerHTML = "";
 
 
   const titleElement =
@@ -438,15 +540,20 @@ function openTutorial(title) {
 
   titleElement.textContent = title;
 
-  scrollContainer.appendChild(titleElement);
+  scrollContainer.appendChild(
+    titleElement
+  );
 
 
-  // Initial steps
+  // Generate first 50 steps
 
   addSteps(50);
 
 
-  // Start at the top
+  showViewer();
+
+
+  // Make sure we're at the top
 
   scrollContainer.scrollTop = 0;
 }
@@ -454,24 +561,27 @@ function openTutorial(title) {
 
 // ===== Infinite Scrolling =====
 
-scrollContainer.addEventListener("scroll", () => {
+scrollContainer.addEventListener(
+  "scroll",
+  function() {
 
-  if (
-    scrollContainer.scrollTop +
-    scrollContainer.clientHeight >=
-    scrollContainer.scrollHeight - 50
-  ) {
+    if (
+      scrollContainer.scrollTop +
+      scrollContainer.clientHeight >=
+      scrollContainer.scrollHeight - 50
+    ) {
 
-    addSteps(10);
+      addSteps(10);
+    }
   }
-});
+);
 
 
 // ===== Create Custom =====
 
 document
   .getElementById("create-btn")
-  .addEventListener("click", () => {
+  .addEventListener("click", function() {
 
     editingTitle = "";
 
@@ -490,18 +600,23 @@ document
 
 document
   .getElementById("reset-btn")
-  .addEventListener("click", () => {
+  .addEventListener("click", function() {
 
-    if (confirm("Reset all tutorials to default?")) {
+    if (
+      confirm(
+        "Reset all tutorials to default?"
+      )
+    ) {
 
       tutorials = {
-        "Goober Tutorial": [...defaultGoober]
+        "Goober Tutorial": [
+          ...defaultGoober
+        ]
       };
 
-      localStorage.setItem(
-        "tutorials",
-        JSON.stringify(tutorials)
-      );
+      saveTutorials();
+
+      currentTutorial = "";
 
       refreshMenu();
 
@@ -510,16 +625,29 @@ document
   });
 
 
-// ===== Viewer Back Button =====
+// ===== Editor Back =====
+
+document
+  .getElementById("back-menu")
+  .addEventListener("click", function() {
+
+    showMenu();
+  });
+
+
+// ===== Viewer Back =====
 
 document
   .getElementById("viewer-back")
-  .addEventListener("click", () => {
+  .addEventListener("click", function() {
 
     currentTutorial = "";
 
     showMenu();
   });
 
-</scrip
+</script>
+
+</body>
+</html>
 ```
